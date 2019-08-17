@@ -1,18 +1,31 @@
 'use strict';
 
-module.exports.hello = async event => {
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: 'Go Serverless v1.0! Your function executed successfully!',
-        input: event,
-      },
-      null,
-      2
-    ),
+const AWS = require('aws-sdk');
+
+module.exports.create = async event => {
+  let bodyObj = JSON.parse(event.body);
+  let putParams = {
+    TableName: process.env.DYNAMODB_CONTACT_TABLE,
+    Item: {
+      email: bodyObj.email,
+      createdAt: parseInt(Date.now()/1000),
+      firstName: bodyObj.firstName,
+      surname: bodyObj.surname,
+      phone: bodyObj.phone
+    }
   };
 
-  // Use this code if you don't use the http event with the LAMBDA-PROXY integration
-  // return { message: 'Go Serverless v1.0! Your function executed successfully!', event };
+  let putResultObj = null;
+  try {
+    var documentClient = new AWS.DynamoDB.DocumentClient();
+    putResultObj = await documentClient.put(putParams).promise();
+  } catch (putError) {
+    console.log('There was an error putting item', putError);
+    console.log('putParams', putParams);
+    throw new Error('There was an error putting item');
+  }
+  console.log('putResultObj', putResultObj);
+  return {
+    statusCode: 201
+  };
 };

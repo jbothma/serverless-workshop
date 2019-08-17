@@ -43,10 +43,17 @@ provider:
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:PutItem
+      Resource: arn:aws:dynamodb:*
 
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
+  environment:
+    DYNAMODB_CONTACT_TABLE: ${self:service}-contactTable-${opt:stage}
 
 # you can add packaging information here
 #package:
@@ -58,12 +65,12 @@ provider:
 #    - exclude-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  create:
+    handler: handler.create
     events:
       - http:
-          path: hello
-          method: get
+          path: v1/contact
+          method: post
           cors: true
 
 #    The following are a few example events you can configure
